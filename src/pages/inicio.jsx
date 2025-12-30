@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';  
-import { motion } from 'framer-motion';  
-import { LogOut, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';  
+import { LogOut, RefreshCw, Filter } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import FormularioDenuncia from '../components/FormularioDenuncia';  
-import ListaDenuncias from '../components/ListaDenuncias';  
+import ListaDenuncias from '../components/ListaDenuncias';
+import './p_inicio.css'; // Importar estilos específicos
 
 const Inicio = ({ usuario }) => {
   const navigate = useNavigate();
   const [denuncias, setDenuncias] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [filtro, setFiltro] = useState('todas'); // 'todas', 'mias'
+  const [filtro, setFiltro] = useState('todas');
 
-  // Cargar denuncias desde Firestore en tiempo real
   useEffect(() => {
     if (!auth.currentUser) {
       setCargando(false);
@@ -29,21 +29,18 @@ const Inicio = ({ usuario }) => {
       let q;
       
       if (filtro === 'mias') {
-        // Solo denuncias del usuario actual
         q = query(
           collection(db, 'denuncias'),
           where('usuarioId', '==', auth.currentUser.uid),
           orderBy('fecharegistro', 'desc')
         );
       } else {
-        // Todas las denuncias
         q = query(
           collection(db, 'denuncias'),
           orderBy('fecharegistro', 'desc')
         );
       }
 
-      // Listener en tiempo real
       const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
@@ -53,7 +50,6 @@ const Inicio = ({ usuario }) => {
           snapshot.forEach((doc) => {
             const data = doc.data();
             
-            // Convertir GeoPoint si existe
             if (data.latitud && typeof data.latitud === 'object' && '_lat' in data.latitud) {
               data.latitud = data.latitud._lat;
             }
@@ -78,7 +74,6 @@ const Inicio = ({ usuario }) => {
         }
       );
 
-      // Cleanup: cancelar listener cuando el componente se desmonte
       return () => {
         console.log('🔌 Desconectando listener de Firestore');
         unsubscribe();
@@ -92,7 +87,6 @@ const Inicio = ({ usuario }) => {
 
   const manejarAgregar = (nuevaDenuncia) => {
     console.log('➕ Nueva denuncia agregada:', nuevaDenuncia);
-    // El listener de onSnapshot actualizará automáticamente la lista
   };
 
   const handleCerrarSesion = async () => {
@@ -107,95 +101,142 @@ const Inicio = ({ usuario }) => {
   const recargarDenuncias = () => {
     setCargando(true);
     setError('');
-    // El useEffect se ejecutará nuevamente
     setFiltro(filtro === 'todas' ? 'mias' : 'todas');
     setTimeout(() => setFiltro(filtro), 100);
   };
 
-  // Verificar que el usuario sea ciudadano (seguridad adicional)
   if (usuario?.tipo !== 'ciudadano') {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-600">Esta página es solo para ciudadanos.</p>
-        </div>
+      <div className="center-screen">
+        <motion.div 
+          className="access-denied"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <div className="access-denied-icon">🚫</div>
+          <h2 className="access-denied-title">Acceso Denegado</h2>
+          <p className="access-denied-text">Esta página es exclusiva para ciudadanos registrados.</p>
+        </motion.div>
       </div>
     );
   }
 
   return (  
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12">
-      {/* Botón de cerrar sesión */}
-      <div className="absolute top-4 right-4">
-        <button
-          onClick={handleCerrarSesion}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-md"
+    <div className="inicio-page">
+      
+      {/* Header con navegación */}
+      <motion.header 
+        className="inicio-header"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="site-container">
+          <div className="header-content">
+            {/* Logo / Brand */}
+            <div className="header-brand">
+              <div className="brand-logo">
+                <span>R</span>
+              </div>
+              <h1 className="brand-title">Reporta</h1>
+            </div>
+
+            {/* User info & logout */}
+            <div className="header-actions">
+              {usuario && (
+                <motion.div 
+                  className="user-info"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <div className="user-avatar">
+                    <span>
+                      {usuario.nombre?.charAt(0)}{usuario.apellido?.charAt(0)}
+                    </span>
+                  </div>
+                  <div className="user-details">
+                    <p className="user-name">
+                      {usuario.nombre} {usuario.apellido}
+                    </p>
+                    <p className="user-role">Ciudadano</p>
+                  </div>
+                </motion.div>
+              )}
+              
+              <button onClick={handleCerrarSesion} className="btn-logout">
+                <LogOut size={18} />
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Main Content */}
+      <main className="site-container inicio-main">
+        
+        {/* Hero Section */}
+        <motion.section
+          className="hero-section"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <LogOut size={18} />
-          Cerrar Sesión
-        </button>
-      </div>
-
-      <div className="container mx-auto px-4 max-w-5xl">  
-
-        {/* Cabecera con título y descripción */}
-        <motion.div  
-          className="text-center mb-12"  
-          initial={{ opacity: 0, y: 20 }}  
-          animate={{ opacity: 1, y: 0 }}  
-          transition={{ duration: 0.6 }}  
-        >  
-          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+          <h2 className="hero-title text-gradient">
             Reporta Problemas Urbanos
-          </h1>  
-          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-            Ayuda a mejorar tu ciudad denunciando incidencias con fotos y ubicación. ¡Tu voz cuenta!
+          </h2>
+          <p className="hero-description">
+            Ayuda a mejorar tu ciudad denunciando incidencias. Tu voz importa.
           </p>
-          {usuario && (
-            <div className="mt-4 inline-block bg-white px-6 py-3 rounded-full shadow-md">
-              <p className="text-sm text-gray-600">
-                Bienvenido, <span className="font-bold text-blue-600">{usuario.nombre} {usuario.apellido}</span>
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Usuario: Ciudadano
+        </motion.section>
+
+        {/* Formulario de Denuncia */}
+        <motion.section
+          className="form-section"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="form-wrapper">
+            <FormularioDenuncia onAgregarDenuncia={manejarAgregar} usuario={usuario} />
+          </div>
+        </motion.section>
+
+        {/* Sección de Denuncias */}
+        <motion.section
+          className="denuncias-section"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          
+          {/* Header con filtros */}
+          <div className="denuncias-header">
+            <div className="denuncias-info">
+              <h3 className="denuncias-title">Denuncias Recientes</h3>
+              <p className="denuncias-count">
+                {denuncias.length} {filtro === 'todas' ? 'totales' : 'tuyas'}
               </p>
             </div>
-          )}
-        </motion.div>  
-
-        {/* Formulario de denuncia */}
-        <div className="mb-12">
-          <FormularioDenuncia onAgregarDenuncia={manejarAgregar} usuario={usuario} />
-        </div>
-
-        {/* Sección de denuncias recientes */}
-        <div className="mt-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Denuncias Recientes
-            </h2>
             
-            <div className="flex gap-2">
+            <div className="denuncias-controls">
               {/* Filtros */}
-              <div className="flex bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="filter-tabs">
                 <button
                   onClick={() => setFiltro('todas')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    filtro === 'todas' 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={`filter-tab ${filtro === 'todas' ? 'active' : ''}`}
                 >
-                  Todas ({denuncias.length})
+                  <Filter size={16} />
+                  <span>Todas</span>
+                  <span className="filter-badge">{denuncias.length}</span>
                 </button>
+                
+                <div className="filter-divider"></div>
+                
                 <button
                   onClick={() => setFiltro('mias')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    filtro === 'mias' 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={`filter-tab ${filtro === 'mias' ? 'active' : ''}`}
                 >
                   Mis Denuncias
                 </button>
@@ -204,58 +245,90 @@ const Inicio = ({ usuario }) => {
               {/* Botón recargar */}
               <button
                 onClick={recargarDenuncias}
-                className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors"
                 disabled={cargando}
+                className="btn-refresh"
+                title="Recargar denuncias"
               >
-                <RefreshCw size={16} className={cargando ? 'animate-spin' : ''} />
-                <span className="text-sm font-medium">Recargar</span>
+                <RefreshCw size={18} className={cargando ? 'spinning' : ''} />
               </button>
             </div>
           </div>
 
-          {/* Mensajes de error */}
-          {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-700">{error}</p>
-              <button 
-                onClick={recargarDenuncias}
-                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+          {/* Mensajes de Error */}
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div
+                className="alert alert-error"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
               >
-                Reintentar
-              </button>
-            </div>
-          )}
+                <div className="alert-content">
+                  <p>{error}</p>
+                  <button onClick={recargarDenuncias} className="alert-action">
+                    Reintentar
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Estado de carga */}
+          {/* Loading State */}
           {cargando && (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-              <p className="mt-4 text-gray-600">Cargando denuncias...</p>
-            </div>
+            <motion.div
+              className="loading-state"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <div className="spinner" style={{ width: '3rem', height: '3rem', borderWidth: '3px' }}></div>
+              <p className="loading-text">Cargando denuncias...</p>
+            </motion.div>
           )}
 
-          {/* Sin denuncias */}
+          {/* Empty State */}
           {!cargando && !error && denuncias.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-2xl shadow-md">
-              <p className="text-xl text-gray-600 mb-2">
-                {filtro === 'mias' ? '📝 No tienes denuncias aún' : '📝 No hay denuncias registradas'}
-              </p>
-              <p className="text-sm text-gray-500">
+            <motion.div
+              className="empty-state card"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <div className="empty-state-icon">📝</div>
+              <h3 className="empty-state-title">
+                {filtro === 'mias' ? 'No tienes denuncias aún' : 'No hay denuncias registradas'}
+              </h3>
+              <p className="empty-state-description">
                 {filtro === 'mias' 
                   ? 'Crea tu primera denuncia usando el formulario de arriba'
-                  : 'Sé el primero en reportar un problema'
+                  : 'Sé el primero en reportar un problema en tu comunidad'
                 }
               </p>
-            </div>
+            </motion.div>
           )}
 
-          {/* Lista de denuncias */}
+          {/* Lista de Denuncias */}
           {!cargando && !error && denuncias.length > 0 && (
-            <ListaDenuncias denuncias={denuncias} filtro={filtro} />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              <ListaDenuncias denuncias={denuncias} filtro={filtro} />
+            </motion.div>
           )}
-        </div>  
+          
+        </motion.section>
 
-      </div>  
+      </main>
+
+      {/* Footer */}
+      <footer className="inicio-footer">
+        <div className="site-container">
+          <p className="footer-text">
+            © {new Date().getFullYear()} Reporta. Mejorando nuestras ciudades juntos.
+          </p>
+        </div>
+      </footer>
+
     </div>  
   );  
 };  

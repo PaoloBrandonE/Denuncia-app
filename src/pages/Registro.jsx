@@ -3,6 +3,9 @@ import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { UserPlus, Mail, Lock, User, CreditCard, AlertCircle, CheckCircle } from "lucide-react";
+import './p_auth.css';
 
 const Registro = () => {
   const navigate = useNavigate();
@@ -34,7 +37,7 @@ const Registro = () => {
         fecharegistro: serverTimestamp()
       });
 
-      // 3. CERRAR SESIÓN INMEDIATAMENTE (esto evita el bucle)
+      // 3. Cerrar sesión inmediatamente
       await signOut(auth);
 
       // 4. Mostrar mensaje de éxito y redirigir a login
@@ -59,99 +62,169 @@ const Registro = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <form
-        onSubmit={handleRegistro}
-        className="bg-white p-8 rounded-xl shadow-md w-full max-w-md space-y-4"
-      >
-        <h2 className="text-2xl font-bold text-center text-gray-800">Registro de Usuario</h2>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            {error}
+    <div className="auth-page">
+      <div className="auth-container">
+        <motion.div 
+          className="auth-card auth-card-wide"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Header */}
+          <div className="auth-header">
+            <div className="auth-icon auth-icon-success">
+              <UserPlus size={32} />
+            </div>
+            <h2 className="auth-title">Crear Cuenta</h2>
+            <p className="auth-subtitle">Regístrate para comenzar a reportar</p>
           </div>
-        )}
 
-        <input
-          type="text"
-          placeholder="Nombre"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          required
-          disabled={loading}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-        />
-        
-        <input
-          type="text"
-          placeholder="Apellido"
-          value={apellido}
-          onChange={(e) => setApellido(e.target.value)}
-          required
-          disabled={loading}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-        />
-        
-        <input
-          type="text"
-          placeholder="DNI"
-          value={dni}
-          onChange={(e) => setDni(e.target.value)}
-          required
-          disabled={loading}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-        />
-        
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          disabled={loading}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-        />
-        
-        <input
-          type="password"
-          placeholder="Contraseña (mínimo 6 caracteres)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-          disabled={loading}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-        />
-        
-        <select 
-          value={tipo} 
-          onChange={(e) => setTipo(e.target.value)} 
-          disabled={loading}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-        >
-          <option value="ciudadano">Ciudadano</option>
-          <option value="admin">Admin</option>
-          <option value="autoridad">Autoridad</option>
-        </select>
+          {/* Error Alert */}
+          {error && (
+            <motion.div 
+              className="alert alert-error"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <AlertCircle size={20} />
+              <span>{error}</span>
+            </motion.div>
+          )}
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
-          disabled={loading}
-        >
-          {loading ? "Registrando..." : "Registrarse"}
-        </button>
+          {/* Form */}
+          <form onSubmit={handleRegistro} className="auth-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">
+                  <User size={16} />
+                  <span>Nombre</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Juan"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="form-input"
+                />
+              </div>
 
-        <p className="text-sm text-center text-gray-500">
-          ¿Ya tienes cuenta?{" "}
-          <span
-            className="text-blue-600 cursor-pointer hover:underline font-medium"
-            onClick={() => !loading && navigate("/login")}
-          >
-            Inicia sesión
-          </span>
-        </p>
-      </form>
+              <div className="form-group">
+                <label className="form-label">
+                  <User size={16} />
+                  <span>Apellido</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Pérez"
+                  value={apellido}
+                  onChange={(e) => setApellido(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                <CreditCard size={16} />
+                <span>DNI</span>
+              </label>
+              <input
+                type="text"
+                placeholder="12345678"
+                value={dni}
+                onChange={(e) => setDni(e.target.value)}
+                required
+                disabled={loading}
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                <Mail size={16} />
+                <span>Email</span>
+              </label>
+              <input
+                type="email"
+                placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                <Lock size={16} />
+                <span>Contraseña</span>
+              </label>
+              <input
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                disabled={loading}
+                className="form-input"
+              />
+              <span className="form-hint">La contraseña debe tener al menos 6 caracteres</span>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                <CheckCircle size={16} />
+                <span>Tipo de Usuario</span>
+              </label>
+              <select 
+                value={tipo} 
+                onChange={(e) => setTipo(e.target.value)} 
+                disabled={loading}
+                className="form-select"
+              >
+                <option value="ciudadano">Ciudadano</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-full"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <div className="spinner-small"></div>
+                  <span>Registrando...</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus size={18} />
+                  <span>Registrarse</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="auth-footer">
+            <p className="footer-text">
+              ¿Ya tienes cuenta?{" "}
+              <span
+                className="footer-link"
+                onClick={() => !loading && navigate("/login")}
+              >
+                Inicia sesión
+              </span>
+            </p>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 };

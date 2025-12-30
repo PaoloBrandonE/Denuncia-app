@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { LogIn, Mail, Lock, AlertCircle } from "lucide-react";
+import './p_auth.css';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -39,59 +42,100 @@ export default function Login() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
-      <form 
-        onSubmit={handleLogin} 
-        className="p-8 shadow-lg rounded-xl bg-white w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Iniciar Sesión</h2>
-        
-        <div className="mb-4">
-          <input 
-            type="email" 
-            placeholder="Email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            required
-            disabled={loading}
-            className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100" 
-          />
-        </div>
-
-        <div className="mb-4">
-          <input 
-            type="password" 
-            placeholder="Contraseña" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required
-            minLength={6}
-            disabled={loading}
-            className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100" 
-          />
-        </div>
-
-        <button 
-          type="submit" 
-          disabled={loading}
-          className="bg-blue-600 text-white p-3 w-full rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+    <div className="auth-page">
+      <div className="auth-container">
+        <motion.div 
+          className="auth-card"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          {loading ? "Ingresando..." : "Ingresar"}
-        </button>
-
-        {error && (
-          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-            {error}
+          {/* Header */}
+          <div className="auth-header">
+            <div className="auth-icon">
+              <LogIn size={32} />
+            </div>
+            <h2 className="auth-title">Iniciar Sesión</h2>
+            <p className="auth-subtitle">Accede a tu cuenta para continuar</p>
           </div>
-        )}
 
-        <p className="mt-6 text-sm text-center text-gray-600">
-          ¿No tienes cuenta?{" "}
-          <Link to="/registro" className="text-blue-600 hover:underline font-medium">
-            Registrarse
-          </Link>
-        </p>
-      </form>
+          {/* Error Alert */}
+          {error && (
+            <motion.div 
+              className="alert alert-error"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <AlertCircle size={20} />
+              <span>{error}</span>
+            </motion.div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleLogin} className="auth-form">
+            <div className="form-group">
+              <label className="form-label">
+                <Mail size={16} />
+                <span>Email</span>
+              </label>
+              <input 
+                type="email" 
+                placeholder="tu@email.com" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required
+                disabled={loading}
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                <Lock size={16} />
+                <span>Contraseña</span>
+              </label>
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required
+                minLength={6}
+                disabled={loading}
+                className="form-input"
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="btn btn-primary btn-full"
+            >
+              {loading ? (
+                <>
+                  <div className="spinner-small"></div>
+                  <span>Ingresando...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn size={18} />
+                  <span>Ingresar</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="auth-footer">
+            <p className="footer-text">
+              ¿No tienes cuenta?{" "}
+              <Link to="/registro" className="footer-link">
+                Registrarse
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
-import Inicio from "./pages/Inicio";
+import Inicio from "./pages/inicio";
 import InicioAdmin from "./pages/InicioAdmin";
 import InicioAutoridad from "./pages/InicioAutoridad";
 import { auth, db } from "./firebase";
